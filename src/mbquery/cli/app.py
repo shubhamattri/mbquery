@@ -11,6 +11,7 @@ from mbquery.cli.card import card_app
 from mbquery.cli.dashboard import dashboard_app
 from mbquery.cli.search import search_cmd
 from mbquery.cli.config_cmd import config_app
+from mbquery.cli.serve import serve_cmd
 
 app = typer.Typer(
     name="mbquery",
@@ -28,6 +29,7 @@ app.add_typer(card_app)
 app.add_typer(dashboard_app)
 app.command(name="search")(search_cmd)
 app.add_typer(config_app)
+app.command(name="serve")(serve_cmd)
 
 
 def main() -> None:
