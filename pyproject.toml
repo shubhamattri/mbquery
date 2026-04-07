@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mbquery"
+version = "0.1.0"
+description = "The ultimate Metabase CLI — SQL, natural language queries, and MCP server"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Shubham Attri", email = "shubhamattri@outlook.com" },
+]
+keywords = ["metabase", "cli", "sql", "natural-language", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "httpx>=0.25.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+all = ["mbquery[mcp]"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "respx>=0.21"]
+
+[project.scripts]
+mbquery = "mbquery.cli.app:main"
+
+[project.urls]
+Homepage = "https://github.com/shubhamattri/mbquery"
+Repository = "https://github.com/shubhamattri/mbquery"
+Issues = "https://github.com/shubhamattri/mbquery/issues"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
