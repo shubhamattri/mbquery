@@ -5,6 +5,7 @@ import typer
 from rich.console import Console
 
 from mbquery.cli.query import query_cmd
+from mbquery.cli.ask import ask_cmd
 
 app = typer.Typer(
     name="mbquery",
@@ -16,6 +17,7 @@ app = typer.Typer(
 console = Console(stderr=True)
 
 app.command(name="query")(query_cmd)
+app.command(name="ask")(ask_cmd)
 
 
 @app.command(name="_placeholder", hidden=True)
