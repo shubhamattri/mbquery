@@ -6,10 +6,15 @@ from rich.console import Console
 
 from mbquery.cli.query import query_cmd
 from mbquery.cli.ask import ask_cmd
+from mbquery.cli.schema import schema_app
+from mbquery.cli.card import card_app
+from mbquery.cli.dashboard import dashboard_app
+from mbquery.cli.search import search_cmd
+from mbquery.cli.config_cmd import config_app
 
 app = typer.Typer(
     name="mbquery",
-    help="The ultimate Metabase CLI — SQL, natural language queries, and MCP server.",
+    help="The ultimate Metabase CLI.",
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
@@ -18,12 +23,11 @@ console = Console(stderr=True)
 
 app.command(name="query")(query_cmd)
 app.command(name="ask")(ask_cmd)
-
-
-@app.command(name="_placeholder", hidden=True)
-def _placeholder() -> None:
-    """Hidden placeholder to ensure multi-command group mode."""
-    pass  # pragma: no cover
+app.add_typer(schema_app)
+app.add_typer(card_app)
+app.add_typer(dashboard_app)
+app.command(name="search")(search_cmd)
+app.add_typer(config_app)
 
 
 def main() -> None:
