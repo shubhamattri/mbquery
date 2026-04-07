@@ -1,6 +1,7 @@
 """Name-or-ID resolution for Metabase entities."""
 from __future__ import annotations
 
+
 def resolve_card_id(client, id_or_name: str) -> int:
     if id_or_name.isdigit():
         return int(id_or_name)

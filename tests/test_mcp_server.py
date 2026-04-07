@@ -1,9 +1,9 @@
-import json
 import pytest
 import respx
-from pathlib import Path
-from mbquery.mcp.server import create_mcp_server, MbqueryMCPServer
-from mbquery.config.models import Profile, AuthConfig
+
+from mbquery.config.models import AuthConfig, Profile
+from mbquery.mcp.server import MbqueryMCPServer, create_mcp_server
+
 
 @pytest.fixture
 def profile():

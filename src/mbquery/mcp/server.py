@@ -1,16 +1,18 @@
 """MCP server for mbquery."""
 from __future__ import annotations
+
 import json
 from pathlib import Path
 
 from mbquery.config.models import Profile
+from mbquery.core.cards import list_cards as _list_cards
+from mbquery.core.cards import run_card as _run_card
 from mbquery.core.client import MetabaseClient
-from mbquery.core.queries import execute_sql, is_write_query, QueryResult
-from mbquery.core.database import list_databases as _list_databases
-from mbquery.core.cards import list_cards as _list_cards, run_card as _run_card
 from mbquery.core.dashboards import list_dashboards as _list_dashboards
-from mbquery.core.search import search as _search
+from mbquery.core.database import list_databases as _list_databases
+from mbquery.core.queries import QueryResult, execute_sql, is_write_query
 from mbquery.core.schema_cache import SchemaCache
+from mbquery.core.search import search as _search
 
 
 def _result_to_text(result: QueryResult, max_rows: int = 100) -> str:

@@ -1,4 +1,4 @@
-from mbquery.config.models import AppConfig, Defaults, LLMConfig, Profile, AuthConfig
+from mbquery.config.models import AppConfig, Defaults, LLMConfig, Profile
 
 
 def test_profile_from_dict(sample_profile):

@@ -1,5 +1,6 @@
 from mbquery.core.queries import QueryResult
-from mbquery.formatters.redact import redact_pii, PII_SEMANTIC_TYPES
+from mbquery.formatters.redact import PII_SEMANTIC_TYPES, redact_pii
+
 
 def test_pii_types_list():
     assert "type/Email" in PII_SEMANTIC_TYPES

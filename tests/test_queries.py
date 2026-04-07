@@ -1,9 +1,11 @@
 import json
+
 import pytest
 import respx
-from mbquery.core.queries import execute_sql, QueryResult
+
+from mbquery.config.models import AuthConfig, Profile
 from mbquery.core.client import MetabaseClient
-from mbquery.config.models import Profile, AuthConfig
+from mbquery.core.queries import QueryResult, execute_sql
 
 
 @pytest.fixture
@@ -25,7 +27,7 @@ def test_execute_sql_returns_query_result(client):
 @respx.mock
 def test_execute_sql_with_limit(client):
     respx.post("https://metabase.test.com/api/dataset").respond(json={"data": {"rows": [[1]], "cols": [{"name": "id", "base_type": "type/Integer", "semantic_type": None}]}, "row_count": 1})
-    result = execute_sql(client, "SELECT id FROM users", database_id=2, limit=10)
+    execute_sql(client, "SELECT id FROM users", database_id=2, limit=10)
     call_body = respx.calls[0].request.read()
     body = json.loads(call_body)
     assert "LIMIT 10" in body["native"]["query"]

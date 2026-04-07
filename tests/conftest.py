@@ -1,6 +1,6 @@
-import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture

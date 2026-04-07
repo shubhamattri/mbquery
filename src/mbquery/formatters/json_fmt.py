@@ -1,6 +1,8 @@
 """JSON and JSONL formatters."""
 import json
+
 from mbquery.core.queries import QueryResult
+
 
 def format_json(result: QueryResult) -> str:
     rows = []

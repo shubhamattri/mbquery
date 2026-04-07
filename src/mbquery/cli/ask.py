@@ -1,8 +1,11 @@
 """mbquery ask — natural language to SQL queries."""
 from __future__ import annotations
+
 from typing import Optional
+
 import typer
 from rich.console import Console
+
 from mbquery.ai.gemini import GeminiProvider
 from mbquery.ai.openai_compat import OpenAICompatProvider
 from mbquery.ai.prompt import build_nl_to_sql_prompt

@@ -1,6 +1,8 @@
 """mbquery serve — start MCP server."""
 from __future__ import annotations
+
 from typing import Optional
+
 import typer
 from rich.console import Console
 
@@ -11,7 +13,7 @@ def serve_cmd(profile: Optional[str] = typer.Option(None, "--profile", "-p")) ->
     try:
         from mcp.server import Server
         from mcp.server.stdio import stdio_server
-        from mcp.types import Tool, TextContent
+        from mcp.types import TextContent, Tool
     except ImportError:
         err_console.print("[red]Error:[/] MCP not installed. Run: pip install mbquery[mcp]")
         raise typer.Exit(1)

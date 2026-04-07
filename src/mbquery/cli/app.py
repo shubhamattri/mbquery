@@ -4,13 +4,13 @@ from __future__ import annotations
 import typer
 from rich.console import Console
 
-from mbquery.cli.query import query_cmd
 from mbquery.cli.ask import ask_cmd
-from mbquery.cli.schema import schema_app
 from mbquery.cli.card import card_app
-from mbquery.cli.dashboard import dashboard_app
-from mbquery.cli.search import search_cmd
 from mbquery.cli.config_cmd import config_app
+from mbquery.cli.dashboard import dashboard_app
+from mbquery.cli.query import query_cmd
+from mbquery.cli.schema import schema_app
+from mbquery.cli.search import search_cmd
 from mbquery.cli.serve import serve_cmd
 
 app = typer.Typer(

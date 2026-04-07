@@ -1,5 +1,6 @@
 """PII redaction for query results."""
 from __future__ import annotations
+
 from mbquery.core.queries import QueryResult
 
 PII_SEMANTIC_TYPES = frozenset({

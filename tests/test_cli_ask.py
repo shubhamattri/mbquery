@@ -1,9 +1,11 @@
 import json
 import time
+
 import pytest
-import yaml
 import respx
+import yaml
 from typer.testing import CliRunner
+
 from mbquery.cli.app import app
 
 runner = CliRunner()

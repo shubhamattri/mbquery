@@ -1,6 +1,6 @@
-import yaml
 import pytest
 from typer.testing import CliRunner
+
 from mbquery.cli.app import app
 
 runner = CliRunner()

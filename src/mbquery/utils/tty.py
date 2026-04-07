@@ -1,6 +1,7 @@
 """TTY detection for auto-format selection."""
 import sys
 
+
 def is_tty() -> bool:
     return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 

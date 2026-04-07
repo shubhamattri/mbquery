@@ -1,6 +1,7 @@
 """Markdown table formatter."""
 from mbquery.core.queries import QueryResult
 
+
 def format_markdown(result: QueryResult) -> str:
     if not result.columns:
         return ""

@@ -1,7 +1,9 @@
 """Card (saved question) operations."""
 from __future__ import annotations
+
 from mbquery.core.client import MetabaseClient
 from mbquery.core.queries import QueryResult
+
 
 def list_cards(client: MetabaseClient) -> list[dict]:
     return client.get("/api/card")

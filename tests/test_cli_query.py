@@ -1,10 +1,11 @@
 import json
+
 import pytest
 import respx
 import yaml
 from typer.testing import CliRunner
+
 from mbquery.cli.app import app
-from pathlib import Path
 
 runner = CliRunner()
 

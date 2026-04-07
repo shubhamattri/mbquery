@@ -1,8 +1,11 @@
 """mbquery schema — browse database schema."""
 from __future__ import annotations
+
 from typing import Optional
+
 import typer
 from rich.console import Console
+
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
 from mbquery.core.database import list_databases

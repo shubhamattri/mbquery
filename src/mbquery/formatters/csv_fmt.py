@@ -1,7 +1,9 @@
 """CSV formatter."""
 import csv
 from io import StringIO
+
 from mbquery.core.queries import QueryResult
+
 
 def format_csv(result: QueryResult) -> str:
     buf = StringIO()

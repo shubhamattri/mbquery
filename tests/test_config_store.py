@@ -1,8 +1,7 @@
-import os
-import yaml
 from pathlib import Path
+
+from mbquery.config.models import AuthConfig, Profile
 from mbquery.config.store import ConfigStore
-from mbquery.config.models import Profile, AuthConfig, LLMConfig
 
 
 def test_store_init_creates_dir(tmp_config_dir: Path):

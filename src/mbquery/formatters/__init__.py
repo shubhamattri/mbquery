@@ -1,9 +1,9 @@
 """Output formatting for query results."""
 from mbquery.core.queries import QueryResult
-from mbquery.formatters.table import format_table
 from mbquery.formatters.csv_fmt import format_csv
 from mbquery.formatters.json_fmt import format_json, format_jsonl
 from mbquery.formatters.markdown import format_markdown
+from mbquery.formatters.table import format_table
 
 FORMATS = {"table": format_table, "csv": format_csv, "json": format_json, "jsonl": format_jsonl, "markdown": format_markdown}
 

@@ -1,11 +1,14 @@
 import json
+
 import pytest
+
 from mbquery.core.queries import QueryResult
 from mbquery.formatters import format_result
-from mbquery.formatters.table import format_table
 from mbquery.formatters.csv_fmt import format_csv
 from mbquery.formatters.json_fmt import format_json, format_jsonl
 from mbquery.formatters.markdown import format_markdown
+from mbquery.formatters.table import format_table
+
 
 @pytest.fixture
 def sample_result():

@@ -1,8 +1,10 @@
 import json
-import yaml
+
 import pytest
 import respx
+import yaml
 from typer.testing import CliRunner
+
 from mbquery.cli.app import app
 
 runner = CliRunner()

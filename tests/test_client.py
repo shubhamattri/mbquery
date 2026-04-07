@@ -1,8 +1,9 @@
 import httpx
 import pytest
 import respx
+
+from mbquery.config.models import AuthConfig, Profile
 from mbquery.core.client import MetabaseClient
-from mbquery.config.models import Profile, AuthConfig
 
 
 @pytest.fixture

@@ -1,8 +1,11 @@
 """Rich table formatter."""
 from io import StringIO
+
 from rich.console import Console
 from rich.table import Table
+
 from mbquery.core.queries import QueryResult
+
 
 def format_table(result: QueryResult) -> str:
     table = Table(show_header=True, header_style="bold cyan")

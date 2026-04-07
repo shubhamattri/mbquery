@@ -1,10 +1,12 @@
 """Integration test — verify full CLI works end-to-end."""
 import json
 import time
-import yaml
+
 import pytest
 import respx
+import yaml
 from typer.testing import CliRunner
+
 from mbquery.cli.app import app
 
 runner = CliRunner()

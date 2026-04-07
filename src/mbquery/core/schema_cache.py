@@ -1,8 +1,10 @@
 """Schema auto-discovery and caching."""
 from __future__ import annotations
+
 import json
 import time
 from pathlib import Path
+
 from mbquery.core.client import MetabaseClient
 from mbquery.core.database import get_database_metadata
 

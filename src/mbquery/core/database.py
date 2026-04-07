@@ -1,5 +1,6 @@
 """Database, table, and field operations."""
 from __future__ import annotations
+
 from mbquery.core.client import MetabaseClient
 
 

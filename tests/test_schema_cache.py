@@ -1,11 +1,13 @@
 import json
 import time
+
 import pytest
 import respx
-from pathlib import Path
-from mbquery.core.schema_cache import SchemaCache
+
+from mbquery.config.models import AuthConfig, Profile
 from mbquery.core.client import MetabaseClient
-from mbquery.config.models import Profile, AuthConfig
+from mbquery.core.schema_cache import SchemaCache
+
 
 @pytest.fixture
 def client():

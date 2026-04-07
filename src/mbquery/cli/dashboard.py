@@ -1,11 +1,14 @@
 """mbquery dashboard — dashboard operations."""
 from __future__ import annotations
+
 from typing import Optional
+
 import typer
 from rich.console import Console
+
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
-from mbquery.core.dashboards import list_dashboards, get_dashboard
+from mbquery.core.dashboards import get_dashboard, list_dashboards
 from mbquery.core.queries import QueryResult
 from mbquery.formatters import format_result
 from mbquery.utils.tty import auto_format

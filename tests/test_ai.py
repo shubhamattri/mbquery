@@ -1,9 +1,10 @@
 import pytest
 import respx
+
 from mbquery.ai.base import LLMProvider
-from mbquery.ai.prompt import build_nl_to_sql_prompt
-from mbquery.ai.openai_compat import OpenAICompatProvider
 from mbquery.ai.gemini import GeminiProvider
+from mbquery.ai.openai_compat import OpenAICompatProvider
+from mbquery.ai.prompt import build_nl_to_sql_prompt
 
 
 def test_build_prompt_basic():

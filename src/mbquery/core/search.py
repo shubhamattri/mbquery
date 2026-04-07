@@ -1,6 +1,8 @@
 """Search operations."""
 from __future__ import annotations
+
 from mbquery.core.client import MetabaseClient
+
 
 def search(client: MetabaseClient, query: str, model_type: str | None = None) -> list[dict]:
     params: dict = {"q": query}
