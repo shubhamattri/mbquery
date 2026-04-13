@@ -26,6 +26,11 @@ class MetabaseClient:
             resp.raise_for_status()
             self._session_token = resp.json()["id"]
             self._authenticated = True
+        elif self.profile.auth.method == "google-sso":
+            # Use stored session token from profile; login must be run first
+            if self.profile.auth.session_token and not self._authenticated:
+                self._session_token = self.profile.auth.session_token
+                self._authenticated = True
 
     def _headers(self) -> dict[str, str]:
         headers: dict[str, str] = {"Content-Type": "application/json"}
@@ -42,6 +47,8 @@ class MetabaseClient:
             import sys
             print(f"GET {url}", file=sys.stderr)
         resp = self._http.get(url, headers=self._headers(), params=params)
+        if resp.status_code == 401 and self.profile.auth.method == "google-sso":
+            raise ValueError("Session expired. Run: mbquery login")
         resp.raise_for_status()
         return resp.json()
 
@@ -52,6 +59,8 @@ class MetabaseClient:
             import sys
             print(f"POST {url}", file=sys.stderr)
         resp = self._http.post(url, headers=self._headers(), json=json)
+        if resp.status_code == 401 and self.profile.auth.method == "google-sso":
+            raise ValueError("Session expired. Run: mbquery login")
         resp.raise_for_status()
         return resp.json()
 

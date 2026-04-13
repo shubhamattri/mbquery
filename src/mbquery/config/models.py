@@ -7,10 +7,13 @@ from dataclasses import dataclass, field
 
 @dataclass
 class AuthConfig:
-    method: str  # "api-key" or "session"
+    method: str  # "api-key", "session", or "google-sso"
     api_key: str | None = None
     email: str | None = None
     password: str | None = None
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    session_token: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> AuthConfig:
@@ -19,6 +22,9 @@ class AuthConfig:
             api_key=data.get("api_key"),
             email=data.get("email"),
             password=data.get("password"),
+            google_client_id=data.get("google_client_id"),
+            google_client_secret=data.get("google_client_secret"),
+            session_token=data.get("session_token"),
         )
 
     def to_dict(self) -> dict:
@@ -28,6 +34,10 @@ class AuthConfig:
         elif self.method == "session":
             d["email"] = self.email
             d["password"] = self.password
+        elif self.method == "google-sso":
+            d["google_client_id"] = self.google_client_id
+            d["google_client_secret"] = self.google_client_secret
+            d["session_token"] = self.session_token
         return d
 
 

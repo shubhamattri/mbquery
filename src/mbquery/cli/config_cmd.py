@@ -83,12 +83,22 @@ def _run_init_wizard(store: ConfigStore) -> None:
     err_console.print("  How do you authenticate?")
     err_console.print("    [bold]1.[/] API Key [dim](recommended — get one from Admin > Settings > Authentication)[/]")
     err_console.print("    [bold]2.[/] Email + Password")
+    err_console.print("    [bold]3.[/] Google SSO [dim](opens browser for Google sign-in)[/]")
     auth_choice = typer.prompt("  Choice", type=int, default=1)
 
     api_key = email = password = None
+    google_client_id = google_client_secret = None
     if auth_choice == 1:
         api_key = typer.prompt("  API Key", hide_input=True)
         auth_method = "api-key"
+    elif auth_choice == 3:
+        auth_method = "google-sso"
+        from mbquery.auth.google_sso import fetch_google_client_id
+        err_console.print("  Fetching Google client ID from Metabase...")
+        google_client_id = fetch_google_client_id(url)
+        if not google_client_id:
+            google_client_id = typer.prompt("  Google OAuth Client ID (from Google Cloud Console)")
+        google_client_secret = typer.prompt("  Google OAuth Client Secret (from Google Cloud Console)", default="", hide_input=True) or None
     else:
         email = typer.prompt("  Email")
         password = typer.prompt("  Password", hide_input=True)
@@ -103,6 +113,29 @@ def _run_init_wizard(store: ConfigStore) -> None:
         name=name, url=url, auth_method=auth_method,
         api_key=api_key, email=email, password=password,
     )
+
+    # For Google SSO, store client credentials and run initial login
+    if auth_method == "google-sso":
+        config = store.load()
+        profile = config.profiles[name]
+        profile.auth.google_client_id = google_client_id
+        profile.auth.google_client_secret = google_client_secret
+        store.save(config)
+
+        err_console.print("  Running Google SSO login...")
+        from mbquery.auth.google_sso import google_sso_login
+        try:
+            session_token = google_sso_login(
+                metabase_url=url,
+                google_client_id=google_client_id,
+                google_client_secret=google_client_secret,
+            )
+            config = store.load()
+            config.profiles[name].auth.session_token = session_token
+            store.save(config)
+        except Exception as e:
+            err_console.print(f"  [yellow]Warning:[/] SSO login failed: {e}")
+            err_console.print("  Run [bold]mbquery login[/] to authenticate later.")
 
     err_console.print("  Testing connection...")
     if not _test_connection(store, name):
@@ -264,14 +297,19 @@ def add(
     email: Optional[str] = typer.Option(None, "--email", help="Email for session auth"),
     password: Optional[str] = typer.Option(None, "--password", help="Password"),
     db: Optional[int] = typer.Option(None, "--db", help="Default database ID"),
+    google_sso: bool = typer.Option(False, "--google-sso", help="Use Google SSO authentication"),
+    google_client_id: Optional[str] = typer.Option(None, "--google-client-id", help="Google OAuth client ID"),
+    google_client_secret: Optional[str] = typer.Option(None, "--google-client-secret", help="Google OAuth client secret"),
 ) -> None:
     """Add a new Metabase profile."""
     if api_key:
         auth_method = "api-key"
     elif email:
         auth_method = "session"
+    elif google_sso:
+        auth_method = "google-sso"
     else:
-        err_console.print("[red]Error:[/] Provide --api-key or --email + --password")
+        err_console.print("[red]Error:[/] Provide --api-key, --email + --password, or --google-sso")
         raise typer.Exit(1)
 
     store = ConfigStore()
@@ -279,6 +317,23 @@ def add(
         name=name, url=url, auth_method=auth_method,
         api_key=api_key, email=email, password=password, default_db=db,
     )
+
+    if auth_method == "google-sso":
+        config = store.load()
+        profile = config.profiles[name]
+        if not google_client_id:
+            from mbquery.auth.google_sso import fetch_google_client_id
+            google_client_id = fetch_google_client_id(url)
+            if not google_client_id:
+                err_console.print("[red]Error:[/] Could not fetch Google client ID from Metabase. Provide --google-client-id")
+                raise typer.Exit(1)
+        profile.auth.google_client_id = google_client_id
+        profile.auth.google_client_secret = google_client_secret
+        store.save(config)
+        err_console.print(f"Profile '{name}' added with Google SSO auth.")
+        err_console.print("Run [bold]mbquery login[/] to authenticate.")
+        return
+
     err_console.print(f"Profile '{name}' added.")
 
     # Test connection

@@ -8,6 +8,7 @@ from mbquery.cli.ask import ask_cmd
 from mbquery.cli.card import card_app
 from mbquery.cli.config_cmd import config_app
 from mbquery.cli.dashboard import dashboard_app
+from mbquery.cli.login import login_cmd
 from mbquery.cli.query import query_cmd
 from mbquery.cli.schema import schema_app
 from mbquery.cli.search import search_cmd
@@ -30,6 +31,7 @@ app.add_typer(dashboard_app)
 app.command(name="search")(search_cmd)
 app.add_typer(config_app)
 app.command(name="serve")(serve_cmd)
+app.command(name="login")(login_cmd)
 
 
 def main() -> None:

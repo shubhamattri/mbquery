@@ -51,7 +51,7 @@ def test_full_nl_workflow():
 def test_all_commands_registered():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for cmd in ["query", "ask", "schema", "card", "dashboard", "search", "config", "serve"]:
+    for cmd in ["query", "ask", "schema", "card", "dashboard", "search", "config", "serve", "login"]:
         assert cmd in result.output, f"Command '{cmd}' not found in help"
 
 @respx.mock

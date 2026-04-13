@@ -64,6 +64,28 @@ def test_app_config_empty():
     assert config.defaults.format == "table"
 
 
+def test_profile_google_sso_auth():
+    profile = Profile.from_dict("sso", {
+        "url": "https://metabase.test.com",
+        "auth": {
+            "method": "google-sso",
+            "google_client_id": "test.apps.googleusercontent.com",
+            "google_client_secret": "secret123",
+            "session_token": "sess_abc",
+        },
+    })
+    assert profile.auth.method == "google-sso"
+    assert profile.auth.google_client_id == "test.apps.googleusercontent.com"
+    assert profile.auth.google_client_secret == "secret123"
+    assert profile.auth.session_token == "sess_abc"
+
+    d = profile.to_dict()
+    assert d["auth"]["method"] == "google-sso"
+    assert d["auth"]["google_client_id"] == "test.apps.googleusercontent.com"
+    assert d["auth"]["google_client_secret"] == "secret123"
+    assert d["auth"]["session_token"] == "sess_abc"
+
+
 def test_app_config_roundtrip():
     config = AppConfig.empty()
     config.active_profile = "prod"
