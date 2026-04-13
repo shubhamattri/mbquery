@@ -123,12 +123,64 @@ def test_google_sso_login_full_flow():
         session_token = google_sso_login(
             metabase_url="https://metabase.test.com",
             google_client_id="test-client-id",
+            google_client_secret="test-client-secret",
         )
 
     assert session_token == "metabase_session_token_xyz"
     mock_server.server_close.assert_called_once()
 
-    # Verify code_verifier was sent (PKCE) and client_secret was NOT sent
+    # Verify both PKCE code_verifier AND client_secret are sent together
+    token_request = respx.calls[0].request
+    assert b"code_verifier=" + fixed_verifier.encode() in token_request.content
+    assert b"client_secret=test-client-secret" in token_request.content
+
+
+@respx.mock
+def test_google_sso_login_pkce_only_no_client_secret():
+    """Without client_secret, only PKCE code_verifier is sent (Desktop OAuth client flow)."""
+    fixed_state = "test_state_value_abc123"
+    fixed_verifier = "B" * 86
+    fixed_challenge = "test_challenge_value_2"
+
+    mock_server = MagicMock()
+    call_count = {"n": 0}
+
+    def fake_handle_request():
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            _OAuthCallbackHandler.auth_code = "test_auth_code_2"
+            _OAuthCallbackHandler.error = None
+
+    mock_server.handle_request.side_effect = fake_handle_request
+    mock_server.server_close = MagicMock()
+
+    respx.post("https://oauth2.googleapis.com/token").respond(json={
+        "id_token": "test_id_token_2",
+        "access_token": "test_access_token_2",
+    })
+    respx.post("https://metabase.test.com/api/session/google_auth").respond(json={
+        "id": "metabase_session_token_pkce_only",
+    })
+
+    with patch("mbquery.auth.google_sso._check_port_available", return_value=True), \
+         patch("mbquery.auth.google_sso.HTTPServer", return_value=mock_server), \
+         patch("mbquery.auth.google_sso.webbrowser.open"), \
+         patch("mbquery.auth.google_sso.secrets.token_urlsafe", return_value=fixed_state), \
+         patch("mbquery.auth.google_sso._generate_pkce", return_value=(fixed_verifier, fixed_challenge)):
+
+        _OAuthCallbackHandler.auth_code = None
+        _OAuthCallbackHandler.error = None
+        _OAuthCallbackHandler.expected_state = None
+
+        session_token = google_sso_login(
+            metabase_url="https://metabase.test.com",
+            google_client_id="test-client-id",
+            # No google_client_secret — Desktop OAuth client
+        )
+
+    assert session_token == "metabase_session_token_pkce_only"
+
+    # PKCE verifier present, client_secret absent
     token_request = respx.calls[0].request
     assert b"code_verifier=" + fixed_verifier.encode() in token_request.content
     assert b"client_secret" not in token_request.content

@@ -12,6 +12,7 @@ class AuthConfig:
     email: str | None = None
     password: str | None = None
     google_client_id: str | None = None
+    google_client_secret: str | None = None
     session_token: str | None = None
 
     @classmethod
@@ -22,6 +23,7 @@ class AuthConfig:
             email=data.get("email"),
             password=data.get("password"),
             google_client_id=data.get("google_client_id"),
+            google_client_secret=data.get("google_client_secret"),
             session_token=data.get("session_token"),
         )
 
@@ -34,6 +36,8 @@ class AuthConfig:
             d["password"] = self.password
         elif self.method == "google-sso":
             d["google_client_id"] = self.google_client_id
+            if self.google_client_secret:
+                d["google_client_secret"] = self.google_client_secret
             d["session_token"] = self.session_token
         return d
 

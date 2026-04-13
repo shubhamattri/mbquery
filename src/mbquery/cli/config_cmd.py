@@ -88,6 +88,7 @@ def _run_init_wizard(store: ConfigStore) -> None:
 
     api_key = email = password = None
     google_client_id = None
+    google_client_secret = None
     if auth_choice == 1:
         api_key = typer.prompt("  API Key", hide_input=True)
         auth_method = "api-key"
@@ -98,6 +99,12 @@ def _run_init_wizard(store: ConfigStore) -> None:
         google_client_id = fetch_google_client_id(url)
         if not google_client_id:
             google_client_id = typer.prompt("  Google OAuth Client ID (from Google Cloud Console)")
+        err_console.print()
+        err_console.print("  [bold]Google Client Secret[/] (one-time admin setup):")
+        err_console.print("    Get it from Google Cloud Console → OAuth 2.0 Client → Client Secret")
+        err_console.print("    This is only needed once — all team members share the same config.")
+        secret_input = typer.prompt("  Client Secret (press Enter to skip)", default="", hide_input=True)
+        google_client_secret = secret_input if secret_input else None
     else:
         email = typer.prompt("  Email")
         password = typer.prompt("  Password", hide_input=True)
@@ -113,11 +120,12 @@ def _run_init_wizard(store: ConfigStore) -> None:
         api_key=api_key, email=email, password=password,
     )
 
-    # For Google SSO, store client_id and run initial login
+    # For Google SSO, store client_id/secret and run initial login
     if auth_method == "google-sso":
         config = store.load()
         profile = config.profiles[name]
         profile.auth.google_client_id = google_client_id
+        profile.auth.google_client_secret = google_client_secret
         store.save(config)
 
         err_console.print("  Running Google SSO login...")
@@ -126,6 +134,7 @@ def _run_init_wizard(store: ConfigStore) -> None:
             session_token = google_sso_login(
                 metabase_url=url,
                 google_client_id=google_client_id,
+                google_client_secret=google_client_secret,
             )
             config = store.load()
             config.profiles[name].auth.session_token = session_token
@@ -296,6 +305,7 @@ def add(
     db: Optional[int] = typer.Option(None, "--db", help="Default database ID"),
     google_sso: bool = typer.Option(False, "--google-sso", help="Use Google SSO authentication"),
     google_client_id: Optional[str] = typer.Option(None, "--google-client-id", help="Google OAuth client ID"),
+    google_client_secret: Optional[str] = typer.Option(None, "--google-client-secret", help="Google OAuth client secret (Web app clients)"),
 ) -> None:
     """Add a new Metabase profile."""
     if api_key:
@@ -325,6 +335,7 @@ def add(
                 store.remove_profile(name)
                 raise typer.Exit(1)
         profile.auth.google_client_id = google_client_id
+        profile.auth.google_client_secret = google_client_secret
         store.save(config)
         err_console.print(f"Profile '{name}' added with Google SSO auth.")
         err_console.print("Run [bold]mbquery login[/] to authenticate.")

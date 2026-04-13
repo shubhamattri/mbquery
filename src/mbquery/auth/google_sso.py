@@ -103,11 +103,15 @@ def fetch_google_client_id(metabase_url: str) -> str | None:
 def google_sso_login(
     metabase_url: str,
     google_client_id: str,
+    google_client_secret: str | None = None,
     callback_port: int = DEFAULT_CALLBACK_PORT,
 ) -> str:
     """Run the full Google SSO flow and return a Metabase session token.
 
-    Uses PKCE (Proof Key for Code Exchange) — no client_secret required.
+    Uses PKCE (Proof Key for Code Exchange) alongside client_secret for Web
+    application OAuth clients.  client_secret is optional — omit it only for
+    Desktop-type OAuth clients that don't require it.
+
     Opens browser for Google consent, captures auth code via localhost,
     exchanges for ID token, then authenticates with Metabase.
 
@@ -174,7 +178,7 @@ def google_sso_login(
 
     auth_code = _OAuthCallbackHandler.auth_code
 
-    # Exchange auth code for tokens using PKCE code_verifier (no client_secret needed)
+    # Exchange auth code for tokens using PKCE code_verifier + optional client_secret
     err_console.print("  Exchanging token...")
     token_data = {
         "code": auth_code,
@@ -183,6 +187,8 @@ def google_sso_login(
         "grant_type": "authorization_code",
         "code_verifier": code_verifier,
     }
+    if google_client_secret:
+        token_data["client_secret"] = google_client_secret
 
     resp = httpx.post(GOOGLE_TOKEN_URL, data=token_data, timeout=15.0)
     if resp.status_code != 200:

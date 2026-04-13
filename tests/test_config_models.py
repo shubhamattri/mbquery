@@ -64,7 +64,8 @@ def test_app_config_empty():
     assert config.defaults.format == "table"
 
 
-def test_profile_google_sso_auth():
+def test_profile_google_sso_auth_without_secret():
+    """google_client_secret is optional — omitting it keeps it out of to_dict output."""
     profile = Profile.from_dict("sso", {
         "url": "https://metabase.test.com",
         "auth": {
@@ -75,7 +76,7 @@ def test_profile_google_sso_auth():
     })
     assert profile.auth.method == "google-sso"
     assert profile.auth.google_client_id == "test.apps.googleusercontent.com"
-    assert not hasattr(profile.auth, "google_client_secret") or profile.auth.__dict__.get("google_client_secret") is None
+    assert profile.auth.google_client_secret is None
     assert profile.auth.session_token == "sess_abc"
 
     d = profile.to_dict()
@@ -83,6 +84,25 @@ def test_profile_google_sso_auth():
     assert d["auth"]["google_client_id"] == "test.apps.googleusercontent.com"
     assert "google_client_secret" not in d["auth"]
     assert d["auth"]["session_token"] == "sess_abc"
+
+
+def test_profile_google_sso_auth_with_secret():
+    """google_client_secret roundtrip: stored and serialised when provided."""
+    profile = Profile.from_dict("sso-web", {
+        "url": "https://metabase.test.com",
+        "auth": {
+            "method": "google-sso",
+            "google_client_id": "test.apps.googleusercontent.com",
+            "google_client_secret": "GOCSPX-supersecret",
+            "session_token": "sess_xyz",
+        },
+    })
+    assert profile.auth.google_client_secret == "GOCSPX-supersecret"
+
+    d = profile.to_dict()
+    assert d["auth"]["google_client_secret"] == "GOCSPX-supersecret"
+    assert d["auth"]["google_client_id"] == "test.apps.googleusercontent.com"
+    assert d["auth"]["session_token"] == "sess_xyz"
 
 
 def test_app_config_roundtrip():
