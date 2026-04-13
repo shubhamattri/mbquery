@@ -14,6 +14,10 @@ def _default_config_dir() -> Path:
     xdg = os.environ.get("XDG_CONFIG_HOME")
     if xdg:
         return Path(xdg) / "mbquery"
+    # Windows: use %APPDATA%, Mac/Linux: use ~/.config
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        return Path(appdata) / "mbquery"
     return Path.home() / ".config" / "mbquery"
 
 
@@ -38,7 +42,10 @@ class ConfigStore:
         self._ensure_dirs()
         with open(self._config_file, "w") as f:
             yaml.dump(config.to_dict(), f, default_flow_style=False, sort_keys=False)
-        self._config_file.chmod(0o600)
+        try:
+            self._config_file.chmod(0o600)
+        except OSError:
+            pass  # Windows doesn't support Unix permissions
 
     def add_profile(self, name: str, url: str, auth_method: str, api_key: str | None = None, email: str | None = None, password: str | None = None, default_db: int | None = None) -> Profile:
         config = self.load()
