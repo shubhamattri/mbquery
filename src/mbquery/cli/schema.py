@@ -18,8 +18,9 @@ err_console = Console(stderr=True)
 schema_app = typer.Typer(name="schema", help="Browse database schema.", no_args_is_help=True)
 
 def _get_client_and_profile(profile_name: str | None = None):
+    from mbquery.cli.config_cmd import require_profile
     store = ConfigStore()
-    active = store.resolve_profile(profile_name)
+    active = require_profile(store, profile_name)
     return MetabaseClient(active), active, store
 
 @schema_app.command()

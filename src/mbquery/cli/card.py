@@ -6,6 +6,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from mbquery.cli.config_cmd import require_profile
 from mbquery.config.store import ConfigStore
 from mbquery.core.cards import list_cards, run_card
 from mbquery.core.client import MetabaseClient
@@ -22,7 +23,7 @@ card_app = typer.Typer(name="card", help="Saved question operations.", no_args_i
 def card_list(format: Optional[str] = typer.Option(None, "--format"), profile: Optional[str] = typer.Option(None, "--profile", "-p")) -> None:
     """List all saved questions."""
     store = ConfigStore()
-    active = store.resolve_profile(profile)
+    active = require_profile(store, profile)
     client = MetabaseClient(active)
     try:
         cards = list_cards(client)
@@ -40,7 +41,7 @@ def card_run(id_or_name: str = typer.Argument(..., help="Card ID or name"), para
     """Execute a saved question by ID or name."""
     store = ConfigStore()
     config = store.load()
-    active = store.resolve_profile(profile)
+    active = require_profile(store, profile)
     client = MetabaseClient(active)
     try:
         card_id = resolve_card_id(client, id_or_name)

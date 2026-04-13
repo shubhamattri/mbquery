@@ -5,6 +5,7 @@ from typing import Optional
 
 import typer
 
+from mbquery.cli.config_cmd import require_profile
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
 from mbquery.core.queries import QueryResult
@@ -16,7 +17,7 @@ from mbquery.utils.tty import auto_format
 def search_cmd(query: str = typer.Argument(..., help="Search query"), type: Optional[str] = typer.Option(None, "--type", "-t"), format: Optional[str] = typer.Option(None, "--format"), profile: Optional[str] = typer.Option(None, "--profile", "-p")) -> None:
     """Search across all Metabase content."""
     store = ConfigStore()
-    active = store.resolve_profile(profile)
+    active = require_profile(store, profile)
     client = MetabaseClient(active)
     try:
         results = search(client, query, model_type=type)

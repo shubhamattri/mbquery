@@ -84,6 +84,11 @@ class ConfigStore:
         config = self.load()
         return config.llm
 
+    def is_configured(self) -> bool:
+        """Check if at least one profile exists."""
+        config = self.load()
+        return len(config.profiles) > 0
+
     def resolve_profile(self, profile_name: str | None = None) -> Profile:
         """Resolve profile with precedence: flag > env vars > active profile."""
         if profile_name:

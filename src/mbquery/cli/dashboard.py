@@ -6,6 +6,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from mbquery.cli.config_cmd import require_profile
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
 from mbquery.core.dashboards import get_dashboard, list_dashboards
@@ -20,7 +21,7 @@ dashboard_app = typer.Typer(name="dashboard", help="Dashboard operations.", no_a
 def dash_list(format: Optional[str] = typer.Option(None, "--format"), profile: Optional[str] = typer.Option(None, "--profile", "-p")) -> None:
     """List all dashboards."""
     store = ConfigStore()
-    active = store.resolve_profile(profile)
+    active = require_profile(store, profile)
     client = MetabaseClient(active)
     try:
         dashboards = list_dashboards(client)
@@ -37,7 +38,7 @@ def dash_list(format: Optional[str] = typer.Option(None, "--format"), profile: O
 def show(dashboard_id: int = typer.Argument(..., help="Dashboard ID"), format: Optional[str] = typer.Option(None, "--format"), profile: Optional[str] = typer.Option(None, "--profile", "-p")) -> None:
     """Show dashboard structure."""
     store = ConfigStore()
-    active = store.resolve_profile(profile)
+    active = require_profile(store, profile)
     client = MetabaseClient(active)
     try:
         dash = get_dashboard(client, dashboard_id)

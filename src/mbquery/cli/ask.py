@@ -9,6 +9,7 @@ from rich.console import Console
 from mbquery.ai.gemini import GeminiProvider
 from mbquery.ai.openai_compat import OpenAICompatProvider
 from mbquery.ai.prompt import build_nl_to_sql_prompt
+from mbquery.cli.config_cmd import require_profile
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
 from mbquery.core.queries import execute_sql
@@ -49,7 +50,7 @@ def ask_cmd(
         err_console.print("[red]Error:[/] No LLM configured. Run: mbquery config set-llm")
         raise typer.Exit(1)
     try:
-        active_profile = store.resolve_profile(profile)
+        active_profile = require_profile(store, profile)
     except ValueError as e:
         err_console.print(f"[red]Error:[/] {e}")
         raise typer.Exit(1)

@@ -7,6 +7,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from mbquery.cli.config_cmd import require_profile
 from mbquery.config.store import ConfigStore
 from mbquery.core.client import MetabaseClient
 from mbquery.core.queries import execute_sql
@@ -43,7 +44,7 @@ def query_cmd(
 
     store = ConfigStore()
     try:
-        active_profile = store.resolve_profile(profile)
+        active_profile = require_profile(store, profile)
     except ValueError as e:
         err_console.print(f"[red]Error:[/] {e}")
         raise typer.Exit(1)
