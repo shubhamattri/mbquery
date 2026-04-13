@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 from mbquery.auth.google_sso import (
     fetch_google_client_id,
     google_sso_login,
+    _generate_pkce,
     DEFAULT_CALLBACK_PORT,
     _check_port_available,
     _OAuthCallbackHandler,
@@ -41,14 +42,32 @@ def test_default_callback_port():
     assert DEFAULT_CALLBACK_PORT == 8766
 
 
-def test_google_sso_login_requires_client_secret():
-    """google_sso_login must raise ValueError if client_secret is empty."""
-    with pytest.raises(ValueError, match="client_secret is required"):
-        google_sso_login(
-            metabase_url="https://metabase.test.com",
-            google_client_id="test-client-id",
-            google_client_secret="",
-        )
+def test_pkce_generation():
+    """PKCE verifier must be 86 chars (token_urlsafe(64)); challenge must be valid base64url."""
+    import base64
+    import hashlib
+
+    code_verifier, code_challenge = _generate_pkce()
+
+    # token_urlsafe(64) produces 86 URL-safe chars
+    assert len(code_verifier) == 86
+    assert all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_" for c in code_verifier)
+
+    # Verify the challenge is sha256(verifier) base64url-encoded without padding
+    expected_digest = hashlib.sha256(code_verifier.encode("ascii")).digest()
+    expected_challenge = base64.urlsafe_b64encode(expected_digest).rstrip(b"=").decode("ascii")
+    assert code_challenge == expected_challenge
+
+    # No padding characters allowed in PKCE challenge
+    assert "=" not in code_challenge
+
+
+def test_pkce_verifier_and_challenge_differ():
+    """Each call must produce a fresh, unique pair."""
+    v1, c1 = _generate_pkce()
+    v2, c2 = _generate_pkce()
+    assert v1 != v2
+    assert c1 != c2
 
 
 def test_google_sso_login_raises_if_port_occupied():
@@ -58,17 +77,16 @@ def test_google_sso_login_raises_if_port_occupied():
             google_sso_login(
                 metabase_url="https://metabase.test.com",
                 google_client_id="test-client-id",
-                google_client_secret="test-secret",
                 callback_port=8766,
             )
 
 
 @respx.mock
 def test_google_sso_login_full_flow():
-    """Full SSO flow: state verification, token exchange, Metabase auth."""
-    import secrets as _secrets
-
+    """Full SSO flow: PKCE, state verification, token exchange, Metabase auth."""
     fixed_state = "test_state_value_abc123"
+    fixed_verifier = "A" * 86  # mock verifier — token_urlsafe(64) returns 86 chars
+    fixed_challenge = "test_challenge_value"
 
     mock_server = MagicMock()
     # Simulate the callback handler receiving the auth code after one iteration
@@ -94,7 +112,8 @@ def test_google_sso_login_full_flow():
     with patch("mbquery.auth.google_sso._check_port_available", return_value=True), \
          patch("mbquery.auth.google_sso.HTTPServer", return_value=mock_server), \
          patch("mbquery.auth.google_sso.webbrowser.open"), \
-         patch("mbquery.auth.google_sso.secrets.token_urlsafe", return_value=fixed_state):
+         patch("mbquery.auth.google_sso.secrets.token_urlsafe", return_value=fixed_state), \
+         patch("mbquery.auth.google_sso._generate_pkce", return_value=(fixed_verifier, fixed_challenge)):
 
         # Reset handler state before test
         _OAuthCallbackHandler.auth_code = None
@@ -104,15 +123,15 @@ def test_google_sso_login_full_flow():
         session_token = google_sso_login(
             metabase_url="https://metabase.test.com",
             google_client_id="test-client-id",
-            google_client_secret="test-secret",
         )
 
     assert session_token == "metabase_session_token_xyz"
     mock_server.server_close.assert_called_once()
 
-    # Verify client_secret was sent to Google token endpoint
+    # Verify code_verifier was sent (PKCE) and client_secret was NOT sent
     token_request = respx.calls[0].request
-    assert b"client_secret=test-secret" in token_request.content
+    assert b"code_verifier=" + fixed_verifier.encode() in token_request.content
+    assert b"client_secret" not in token_request.content
 
 
 def test_oauth_callback_handler_ignores_favicon():

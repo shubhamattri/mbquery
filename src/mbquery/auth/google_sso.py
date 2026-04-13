@@ -1,6 +1,8 @@
 """Google SSO authentication for Metabase."""
 from __future__ import annotations
 
+import base64
+import hashlib
 import secrets
 import socket
 import time
@@ -79,6 +81,14 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
         pass  # Suppress HTTP server logs
 
 
+def _generate_pkce() -> tuple[str, str]:
+    """Generate PKCE code_verifier and code_challenge (S256 method)."""
+    code_verifier = secrets.token_urlsafe(64)  # 86 URL-safe chars
+    digest = hashlib.sha256(code_verifier.encode("ascii")).digest()
+    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    return code_verifier, code_challenge
+
+
 def fetch_google_client_id(metabase_url: str) -> str | None:
     """Fetch Google OAuth client_id from Metabase's public properties."""
     try:
@@ -93,11 +103,11 @@ def fetch_google_client_id(metabase_url: str) -> str | None:
 def google_sso_login(
     metabase_url: str,
     google_client_id: str,
-    google_client_secret: str,
     callback_port: int = DEFAULT_CALLBACK_PORT,
 ) -> str:
     """Run the full Google SSO flow and return a Metabase session token.
 
+    Uses PKCE (Proof Key for Code Exchange) — no client_secret required.
     Opens browser for Google consent, captures auth code via localhost,
     exchanges for ID token, then authenticates with Metabase.
 
@@ -108,11 +118,6 @@ def google_sso_login(
     Returns the Metabase session token string.
     Raises ValueError on any failure.
     """
-    if not google_client_secret:
-        raise ValueError(
-            "Google client_secret is required for OAuth. Get it from Google Cloud Console."
-        )
-
     if not _check_port_available(callback_port):
         raise ValueError(
             f"Port {callback_port} is already in use. Free the port and try again.\n"
@@ -122,6 +127,7 @@ def google_sso_login(
 
     redirect_uri = f"http://127.0.0.1:{callback_port}/callback"
     state = secrets.token_urlsafe(32)
+    code_verifier, code_challenge = _generate_pkce()
 
     # Reset handler state
     _OAuthCallbackHandler.auth_code = None
@@ -132,7 +138,7 @@ def google_sso_login(
     server = HTTPServer(("127.0.0.1", callback_port), _OAuthCallbackHandler)
     server.timeout = 5  # 5 second timeout per handle_request() call
 
-    # Build Google OAuth URL
+    # Build Google OAuth URL with PKCE parameters
     params = {
         "client_id": google_client_id,
         "redirect_uri": redirect_uri,
@@ -141,6 +147,8 @@ def google_sso_login(
         "access_type": "offline",
         "prompt": "select_account",
         "state": state,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
     }
     auth_url = f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
 
@@ -166,14 +174,14 @@ def google_sso_login(
 
     auth_code = _OAuthCallbackHandler.auth_code
 
-    # Exchange auth code for tokens
+    # Exchange auth code for tokens using PKCE code_verifier (no client_secret needed)
     err_console.print("  Exchanging token...")
     token_data = {
         "code": auth_code,
         "client_id": google_client_id,
-        "client_secret": google_client_secret,
         "redirect_uri": redirect_uri,
         "grant_type": "authorization_code",
+        "code_verifier": code_verifier,
     }
 
     resp = httpx.post(GOOGLE_TOKEN_URL, data=token_data, timeout=15.0)

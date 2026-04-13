@@ -70,19 +70,18 @@ def test_profile_google_sso_auth():
         "auth": {
             "method": "google-sso",
             "google_client_id": "test.apps.googleusercontent.com",
-            "google_client_secret": "secret123",
             "session_token": "sess_abc",
         },
     })
     assert profile.auth.method == "google-sso"
     assert profile.auth.google_client_id == "test.apps.googleusercontent.com"
-    assert profile.auth.google_client_secret == "secret123"
+    assert not hasattr(profile.auth, "google_client_secret") or profile.auth.__dict__.get("google_client_secret") is None
     assert profile.auth.session_token == "sess_abc"
 
     d = profile.to_dict()
     assert d["auth"]["method"] == "google-sso"
     assert d["auth"]["google_client_id"] == "test.apps.googleusercontent.com"
-    assert d["auth"]["google_client_secret"] == "secret123"
+    assert "google_client_secret" not in d["auth"]
     assert d["auth"]["session_token"] == "sess_abc"
 
 

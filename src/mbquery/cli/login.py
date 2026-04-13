@@ -46,7 +46,6 @@ def login_cmd(
         session_token = google_sso_login(
             metabase_url=prof.url,
             google_client_id=prof.auth.google_client_id,
-            google_client_secret=prof.auth.google_client_secret,
         )
     except ValueError as e:
         err_console.print(f"[red]Error:[/] {e}")
