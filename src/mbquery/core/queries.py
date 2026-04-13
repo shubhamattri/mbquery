@@ -34,8 +34,18 @@ class QueryResult:
         return QueryResult(columns=new_cols, rows=new_rows, row_count=self.row_count)
 
 
+def _strip_sql_comments(sql: str) -> str:
+    """Strip SQL comments (-- and /* */) to find the real first statement."""
+    # Remove block comments
+    sql = re.sub(r'/\*.*?\*/', '', sql, flags=re.DOTALL)
+    # Remove line comments
+    sql = re.sub(r'--[^\n]*', '', sql)
+    return sql.strip()
+
+
 def is_write_query(sql: str) -> bool:
-    return bool(WRITE_KEYWORDS.match(sql.strip()))
+    cleaned = _strip_sql_comments(sql)
+    return bool(WRITE_KEYWORDS.match(cleaned))
 
 
 def execute_sql(client: MetabaseClient, sql: str, database_id: int, limit: int | None = None, block_writes: bool = False) -> QueryResult:
@@ -44,10 +54,17 @@ def execute_sql(client: MetabaseClient, sql: str, database_id: int, limit: int |
 
     query = sql.strip().rstrip(";")
     if limit and not re.search(r"\bLIMIT\s+\d+", query, re.IGNORECASE):
-        query = f"SELECT * FROM ({query}) _q LIMIT {limit}"
+        cleaned = _strip_sql_comments(query)
+        if re.match(r"^\s*(SELECT|WITH)\b", cleaned, re.IGNORECASE):
+            query = f"SELECT * FROM ({query}) _q LIMIT {limit}"
 
     payload = {"database": database_id, "type": "native", "native": {"query": query}}
     response = client.post("/api/dataset", json=payload)
+
+    # Metabase returns 202 with status=failed for SQL errors
+    if response.get("status") == "failed":
+        error_msg = response.get("error", "Unknown query error")
+        raise ValueError(f"Query failed: {error_msg}")
 
     data = response.get("data", {})
     rows = data.get("rows", [])

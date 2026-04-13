@@ -23,11 +23,16 @@ class GeminiProvider(LLMProvider):
         self._http = httpx.Client(timeout=60.0)
 
     def generate_sql(self, prompt: str) -> str:
-        url = f"https://generativelanguage.googleapis.com/v1/models/{self.model}:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         resp = self._http.post(url, headers={"Content-Type": "application/json"}, json={
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.0},
         })
         resp.raise_for_status()
-        text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        data = resp.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            block_reason = data.get("promptFeedback", {}).get("blockReason", "unknown")
+            raise ValueError(f"LLM blocked the request (reason: {block_reason}). Try rephrasing.")
+        text = candidates[0]["content"]["parts"][0]["text"]
         return _strip_markdown_sql(text)

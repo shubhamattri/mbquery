@@ -37,6 +37,9 @@ def databases(format: Optional[str] = typer.Option(None, "--format"), profile: O
             row_count=len(dbs),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
 
@@ -58,6 +61,9 @@ def tables(db: Optional[int] = typer.Option(None, "--db"), format: Optional[str]
             row_count=len(tbl_list),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
 
@@ -83,6 +89,9 @@ def fields(table_name: str = typer.Argument(..., help="Table name"), db: Optiona
             row_count=len(flds),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
 
@@ -100,5 +109,8 @@ def refresh(db: Optional[int] = typer.Option(None, "--db"), profile: Optional[st
         table_count = len(schema.get("tables", []))
         field_count = sum(len(t.get("fields", [])) for t in schema.get("tables", []))
         typer.echo(f"Schema cached: {table_count} tables, {field_count} fields.")
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()

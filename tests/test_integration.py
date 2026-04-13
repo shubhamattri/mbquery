@@ -36,7 +36,7 @@ def test_full_sql_workflow():
 
 @respx.mock
 def test_full_nl_workflow():
-    respx.post("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) AS total FROM users"}]}}]})
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) AS total FROM users"}]}}]})
     respx.post("https://metabase.test.com/api/dataset").respond(json={"data": {"rows": [[42]], "cols": [{"name": "total", "base_type": "type/Integer", "semantic_type": None}]}, "row_count": 1})
     result = runner.invoke(app, ["ask", "--format", "json", "how many users are there"])
     assert result.exit_code == 0

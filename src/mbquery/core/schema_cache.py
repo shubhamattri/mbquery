@@ -13,6 +13,7 @@ class SchemaCache:
     def __init__(self, cache_dir: Path, ttl_seconds: int = 86400):
         self.cache_dir = cache_dir
         self.ttl_seconds = ttl_seconds
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _cache_path(self, profile_name: str, database_id: int) -> Path:
         return self.cache_dir / f"{profile_name}_{database_id}.json"

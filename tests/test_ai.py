@@ -43,7 +43,7 @@ def test_openai_compat_strips_markdown():
 
 @respx.mock
 def test_gemini_generate_sql():
-    respx.post("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM orders"}]}}]})
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM orders"}]}}]})
     provider = GeminiProvider(api_key="AIza_test", model="gemini-2.0-flash")
     sql = provider.generate_sql("count all orders")
     assert "SELECT" in sql
@@ -51,7 +51,7 @@ def test_gemini_generate_sql():
 
 @respx.mock
 def test_gemini_strips_markdown():
-    respx.post("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "```sql\nSELECT 1\n```"}]}}]})
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "```sql\nSELECT 1\n```"}]}}]})
     provider = GeminiProvider(api_key="AIza_test", model="gemini-2.0-flash")
     sql = provider.generate_sql("select one")
     assert sql.strip() == "SELECT 1"
@@ -60,3 +60,25 @@ def test_gemini_strips_markdown():
 def test_llm_provider_is_abstract():
     with pytest.raises(TypeError):
         LLMProvider()
+
+
+# Fix 7: Gemini uses v1beta endpoint
+@respx.mock
+def test_gemini_uses_v1beta_endpoint():
+    route = respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(
+        json={"candidates": [{"content": {"parts": [{"text": "SELECT 1"}]}}]}
+    )
+    provider = GeminiProvider(api_key="AIza_test", model="gemini-2.0-flash")
+    provider.generate_sql("select one")
+    assert route.called
+
+
+# Fix 8: Gemini safety filter — no candidates raises descriptive error
+@respx.mock
+def test_gemini_safety_filter_raises():
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(
+        json={"promptFeedback": {"blockReason": "SAFETY"}}
+    )
+    provider = GeminiProvider(api_key="AIza_test", model="gemini-2.0-flash")
+    with pytest.raises(ValueError, match="LLM blocked the request.*SAFETY"):
+        provider.generate_sql("dangerous prompt")

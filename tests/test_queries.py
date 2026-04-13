@@ -5,7 +5,7 @@ import respx
 
 from mbquery.config.models import AuthConfig, Profile
 from mbquery.core.client import MetabaseClient
-from mbquery.core.queries import QueryResult, execute_sql
+from mbquery.core.queries import QueryResult, _strip_sql_comments, execute_sql, is_write_query
 
 
 @pytest.fixture
@@ -60,3 +60,53 @@ def test_query_result_filter_fields():
     filtered = result.filter_fields(["id", "email"])
     assert filtered.column_names == ["id", "email"]
     assert filtered.rows == [[1, "a@b.com"], [2, "b@c.com"]]
+
+
+# Fix 2: is_write_query strips comments before checking
+def test_is_write_query_with_comment_prefix():
+    assert is_write_query("-- comment\nDELETE FROM users")
+    assert is_write_query("/* block comment */\nDROP TABLE foo")
+    assert not is_write_query("-- just a comment\nSELECT 1")
+
+
+def test_strip_sql_comments():
+    assert _strip_sql_comments("-- line comment\nSELECT 1") == "SELECT 1"
+    assert _strip_sql_comments("/* block */\nDELETE FROM x") == "DELETE FROM x"
+    assert _strip_sql_comments("SELECT /* inline */ 1") == "SELECT  1"
+
+
+# Fix 3: Metabase 202 with status=failed raises ValueError
+@respx.mock
+def test_execute_sql_metabase_failed_status(client):
+    respx.post("https://metabase.test.com/api/dataset").respond(
+        status_code=202,
+        json={"status": "failed", "error": "Table does not exist"}
+    )
+    with pytest.raises(ValueError, match="Query failed: Table does not exist"):
+        execute_sql(client, "SELECT * FROM nonexistent", database_id=2)
+
+
+# Fix 6: LIMIT wrapping only applies to SELECT/WITH, not SHOW/EXPLAIN
+@respx.mock
+def test_execute_sql_limit_not_applied_to_show(client):
+    respx.post("https://metabase.test.com/api/dataset").respond(
+        json={"data": {"rows": [["users", "table"]], "cols": [{"name": "Name"}, {"name": "Type"}]}, "row_count": 1}
+    )
+    execute_sql(client, "SHOW TABLES", database_id=2, limit=10)
+    call_body = respx.calls[0].request.read()
+    body = json.loads(call_body)
+    # SHOW TABLES should NOT be wrapped with SELECT * FROM (...) LIMIT
+    assert "SELECT * FROM" not in body["native"]["query"]
+    assert body["native"]["query"].strip() == "SHOW TABLES"
+
+
+@respx.mock
+def test_execute_sql_limit_applied_to_select(client):
+    respx.post("https://metabase.test.com/api/dataset").respond(
+        json={"data": {"rows": [[1]], "cols": [{"name": "id"}]}, "row_count": 1}
+    )
+    execute_sql(client, "SELECT id FROM users", database_id=2, limit=5)
+    call_body = respx.calls[0].request.read()
+    body = json.loads(call_body)
+    assert "SELECT * FROM" in body["native"]["query"]
+    assert "LIMIT 5" in body["native"]["query"]

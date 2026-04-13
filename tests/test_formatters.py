@@ -72,3 +72,15 @@ def test_format_empty_result():
     assert csv_out.strip() == "id"
     json_out = format_json(result)
     assert json.loads(json_out) == []
+
+
+# Fix 5: Markdown escapes pipe and newline in cell values
+def test_format_markdown_escapes_pipe():
+    result = QueryResult(
+        columns=[{"name": "col", "base_type": "type/Text", "semantic_type": None}],
+        rows=[["a|b"], ["c\nd"]],
+        row_count=2,
+    )
+    output = format_markdown(result)
+    assert "a\\|b" in output
+    assert "c d" in output  # newline replaced with space

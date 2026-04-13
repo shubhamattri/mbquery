@@ -131,6 +131,21 @@ def _run_init_wizard(store: ConfigStore) -> None:
 
     # Done!
     err_console.print()
+
+    # Warn if no default_db was configured
+    config_check = store.load()
+    profile_check = config_check.profiles.get(name)
+    if profile_check and not profile_check.default_db:
+        err_console.print(Panel(
+            "[yellow]⚠️  No default database set.[/] You'll need to pass [bold]--db <id>[/] with every command.\n\n"
+            "To set a default later:\n"
+            "  [bold]mbquery config add <name> --url <url> --api-key <key> --db <id>[/]\n\n"
+            "Find your database ID in [bold]Metabase Admin > Databases[/].",
+            title="Warning",
+            border_style="yellow",
+        ))
+        err_console.print()
+
     err_console.print(Panel(
         "[bold green]Setup complete![/]\n\n"
         "Try these commands:\n"

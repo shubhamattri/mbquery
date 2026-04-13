@@ -111,12 +111,9 @@ mbquery config set-hints orders "status values are 'pending', 'completed', 'refu
 MBQUERY_URL=https://metabase.example.com
 MBQUERY_API_KEY=mb_xxx
 MBQUERY_DEFAULT_DB=2
-MBQUERY_LLM_PROVIDER=openai
-MBQUERY_LLM_API_KEY=sk-xxx
-MBQUERY_LLM_MODEL=gpt-4o
-MBQUERY_FORMAT=json
-MBQUERY_REDACT_PII=false
 ```
+
+LLM config via env vars coming in v0.2.
 
 ## License
 

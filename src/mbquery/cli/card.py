@@ -33,6 +33,9 @@ def card_list(format: Optional[str] = typer.Option(None, "--format"), profile: O
             row_count=len(cards),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
 

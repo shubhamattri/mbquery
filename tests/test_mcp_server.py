@@ -45,3 +45,19 @@ def test_mcp_query_executes(profile, tmp_path):
     server = create_mcp_server(profile, cache_dir=tmp_path / "cache")
     result = server.call_tool("query", {"sql": "SELECT COUNT(*) FROM users"})
     assert "42" in result
+
+
+# Fix 9: _db_id raises when no database configured
+def test_mcp_db_id_raises_without_database(tmp_path):
+    from mbquery.config.models import AuthConfig, Profile
+    no_db_profile = Profile(name="test", url="https://metabase.test.com", auth=AuthConfig(method="api-key", api_key="mb_key"), default_db=None)
+    server = create_mcp_server(no_db_profile, cache_dir=tmp_path / "cache")
+    with pytest.raises(ValueError, match="No database_id provided"):
+        server._db_id({})
+
+
+# Fix 2: MCP write blocker catches comment-prefixed write queries
+def test_mcp_query_blocks_write_with_comment_prefix(profile, tmp_path):
+    server = create_mcp_server(profile, cache_dir=tmp_path / "cache")
+    result = server.call_tool("query", {"sql": "-- comment\nDELETE FROM users"})
+    assert "blocked" in result.lower() or "error" in result.lower()

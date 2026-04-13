@@ -14,17 +14,18 @@ class MetabaseClient:
         self._base_url = profile.url
         self._session_token: str | None = None
         self._http = httpx.Client(timeout=30.0)
+        self._authenticated = False
 
-        if profile.auth.method == "session":
-            self._authenticate()
-
-    def _authenticate(self) -> None:
-        resp = self._http.post(
-            f"{self._base_url}/api/session",
-            json={"username": self.profile.auth.email, "password": self.profile.auth.password},
-        )
-        resp.raise_for_status()
-        self._session_token = resp.json()["id"]
+    def _ensure_auth(self) -> None:
+        """Lazily authenticate on first request for session auth."""
+        if self.profile.auth.method == "session" and not self._authenticated:
+            resp = self._http.post(
+                f"{self._base_url}/api/session",
+                json={"username": self.profile.auth.email, "password": self.profile.auth.password},
+            )
+            resp.raise_for_status()
+            self._session_token = resp.json()["id"]
+            self._authenticated = True
 
     def _headers(self) -> dict[str, str]:
         headers: dict[str, str] = {"Content-Type": "application/json"}
@@ -35,6 +36,7 @@ class MetabaseClient:
         return headers
 
     def get(self, endpoint: str, params: dict | None = None) -> dict:
+        self._ensure_auth()
         url = f"{self._base_url}{endpoint}"
         if self.verbose:
             import sys
@@ -44,6 +46,7 @@ class MetabaseClient:
         return resp.json()
 
     def post(self, endpoint: str, json: dict | None = None) -> dict:
+        self._ensure_auth()
         url = f"{self._base_url}{endpoint}"
         if self.verbose:
             import sys

@@ -42,7 +42,7 @@ def _extract_json(output: str) -> str:
 
 @respx.mock
 def test_ask_generates_and_executes():
-    respx.post("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM users"}]}}]})
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM users"}]}}]})
     respx.post("https://metabase.test.com/api/dataset").respond(json={"data": {"rows": [[42]], "cols": [{"name": "count", "base_type": "type/Integer", "semantic_type": None}]}, "row_count": 1})
     result = runner.invoke(app, ["ask", "--format", "json", "how many users are there"])
     assert result.exit_code == 0
@@ -52,7 +52,7 @@ def test_ask_generates_and_executes():
 
 @respx.mock
 def test_ask_show_sql_flag():
-    respx.post("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM users"}]}}]})
+    respx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent").respond(json={"candidates": [{"content": {"parts": [{"text": "SELECT COUNT(*) FROM users"}]}}]})
     respx.post("https://metabase.test.com/api/dataset").respond(json={"data": {"rows": [[42]], "cols": [{"name": "count", "base_type": "type/Integer", "semantic_type": None}]}, "row_count": 1})
     result = runner.invoke(app, ["ask", "--show-sql", "--format", "json", "count users"])
     assert result.exit_code == 0

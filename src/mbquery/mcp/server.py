@@ -28,6 +28,8 @@ def _optimize_list(items: list[dict], keys: list[str]) -> list[dict]:
     return [{k: item.get(k) for k in keys if k in item} for item in items]
 
 
+# NOTE: Handlers use sync httpx.Client. For v0.2, migrate to httpx.AsyncClient
+# when async support is added to core/client.py
 class MbqueryMCPServer:
     def __init__(self, profile: Profile, cache_dir: Path):
         self.profile = profile
@@ -52,7 +54,10 @@ class MbqueryMCPServer:
         }
 
     def _db_id(self, args: dict) -> int:
-        return args.get("database_id") or self.profile.default_db or 1
+        db = args.get("database_id") or self.profile.default_db
+        if not db:
+            raise ValueError("No database_id provided and no default database configured.")
+        return db
 
     def _handle_query(self, args: dict) -> str:
         sql = args["sql"]

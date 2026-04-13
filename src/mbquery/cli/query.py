@@ -51,7 +51,10 @@ def query_cmd(
 
     database_id = db or active_profile.default_db
     if not database_id:
-        err_console.print("[red]Error:[/] No database specified. Use --db or set default_db in profile.")
+        err_console.print(
+            "[red]Error:[/] No database specified. Use --db <id> or set a default:\n"
+            "  mbquery config add <profile> --url <url> --api-key <key> --db <id>"
+        )
         raise typer.Exit(1)
 
     config = store.load()

@@ -20,9 +20,10 @@ def _default_config_dir() -> Path:
 class ConfigStore:
     def __init__(self, config_dir: Path | None = None):
         self.config_dir = config_dir or _default_config_dir()
-        self.config_dir.mkdir(parents=True, exist_ok=True)
-        (self.config_dir / "schema_cache").mkdir(exist_ok=True)
         self._config_file = self.config_dir / "config.yaml"
+
+    def _ensure_dirs(self) -> None:
+        self.config_dir.mkdir(parents=True, exist_ok=True)
 
     def load(self) -> AppConfig:
         if not self._config_file.exists():
@@ -34,6 +35,7 @@ class ConfigStore:
         return AppConfig.from_dict(data)
 
     def save(self, config: AppConfig) -> None:
+        self._ensure_dirs()
         with open(self._config_file, "w") as f:
             yaml.dump(config.to_dict(), f, default_flow_style=False, sort_keys=False)
         self._config_file.chmod(0o600)

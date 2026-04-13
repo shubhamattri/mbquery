@@ -4,10 +4,21 @@ from mbquery.config.models import AuthConfig, Profile
 from mbquery.config.store import ConfigStore
 
 
-def test_store_init_creates_dir(tmp_config_dir: Path):
-    store = ConfigStore(tmp_config_dir)
-    assert store.config_dir.exists()
-    assert (tmp_config_dir / "schema_cache").exists()
+def test_store_init_does_not_create_dir(tmp_config_dir: Path):
+    # Dir creation is deferred to save() — no premature dir creation on env-only usage
+    new_dir = tmp_config_dir / "new_subdir"
+    store = ConfigStore(new_dir)
+    assert store.config_dir == new_dir
+    # Dir is NOT created on init
+    assert not new_dir.exists()
+
+
+def test_store_save_creates_dir(tmp_config_dir: Path):
+    from mbquery.config.models import AppConfig
+    new_dir = tmp_config_dir / "new_subdir"
+    store = ConfigStore(new_dir)
+    store.save(AppConfig.empty())
+    assert new_dir.exists()
 
 
 def test_store_load_empty(tmp_config_dir: Path):

@@ -56,7 +56,10 @@ def ask_cmd(
         raise typer.Exit(1)
     database_id = db or active_profile.default_db
     if not database_id:
-        err_console.print("[red]Error:[/] No database specified.")
+        err_console.print(
+            "[red]Error:[/] No database specified. Use --db <id> or set a default:\n"
+            "  mbquery config add <profile> --url <url> --api-key <key> --db <id>"
+        )
         raise typer.Exit(1)
     cache = SchemaCache(store.config_dir / "schema_cache")
     client = MetabaseClient(active_profile, verbose=verbose)

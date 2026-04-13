@@ -31,6 +31,9 @@ def dash_list(format: Optional[str] = typer.Option(None, "--format"), profile: O
             row_count=len(dashboards),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
 
@@ -49,5 +52,8 @@ def show(dashboard_id: int = typer.Argument(..., help="Dashboard ID"), format: O
             row_count=len(dashcards),
         )
         typer.echo(format_result(result, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()

@@ -16,6 +16,8 @@ from mbquery.utils.tty import auto_format
 
 def search_cmd(query: str = typer.Argument(..., help="Search query"), type: Optional[str] = typer.Option(None, "--type", "-t"), format: Optional[str] = typer.Option(None, "--format"), profile: Optional[str] = typer.Option(None, "--profile", "-p")) -> None:
     """Search across all Metabase content."""
+    from rich.console import Console
+    err_console = Console(stderr=True)
     store = ConfigStore()
     active = require_profile(store, profile)
     client = MetabaseClient(active)
@@ -27,5 +29,8 @@ def search_cmd(query: str = typer.Argument(..., help="Search query"), type: Opti
             row_count=len(results),
         )
         typer.echo(format_result(qr, format or auto_format()))
+    except Exception as e:
+        err_console.print(f"[red]Error:[/] {e}")
+        raise typer.Exit(1)
     finally:
         client.close()
