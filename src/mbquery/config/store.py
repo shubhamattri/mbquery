@@ -32,7 +32,7 @@ class ConfigStore:
     def load(self) -> AppConfig:
         if not self._config_file.exists():
             return AppConfig.empty()
-        with open(self._config_file) as f:
+        with open(self._config_file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         if not data:
             return AppConfig.empty()
@@ -40,7 +40,7 @@ class ConfigStore:
 
     def save(self, config: AppConfig) -> None:
         self._ensure_dirs()
-        with open(self._config_file, "w") as f:
+        with open(self._config_file, "w", encoding="utf-8") as f:
             yaml.dump(config.to_dict(), f, default_flow_style=False, sort_keys=False)
         try:
             self._config_file.chmod(0o600)

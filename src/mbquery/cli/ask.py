@@ -70,7 +70,7 @@ def ask_cmd(
         hints_file = store.config_dir / "hints.yaml"
         if hints_file.exists():
             import yaml
-            with open(hints_file) as f:
+            with open(hints_file, encoding="utf-8") as f:
                 hints_data = yaml.safe_load(f)
             if hints_data:
                 hints = "\n".join(f"- {k}: {v}" for k, v in hints_data.items())

@@ -23,7 +23,7 @@ class SchemaCache:
         if not path.exists():
             return None
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
             cached_at = data.get("cached_at", 0)
             if time.time() - cached_at > self.ttl_seconds:
                 return None
@@ -34,7 +34,7 @@ class SchemaCache:
     def _write_cache(self, profile_name: str, database_id: int, schema: dict) -> None:
         path = self._cache_path(profile_name, database_id)
         schema["cached_at"] = time.time()
-        path.write_text(json.dumps(schema, indent=2))
+        path.write_text(json.dumps(schema, indent=2), encoding="utf-8")
 
     def get_schema(self, client: MetabaseClient, database_id: int, profile_name: str, force_refresh: bool = False) -> dict:
         if not force_refresh:

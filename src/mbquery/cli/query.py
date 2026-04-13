@@ -38,7 +38,7 @@ def query_cmd(
         if not file.exists():
             err_console.print(f"[red]Error:[/] File not found: {file}")
             raise typer.Exit(1)
-        sql = file.read_text().strip()
+        sql = file.read_text(encoding="utf-8").strip()
 
     assert sql is not None
 

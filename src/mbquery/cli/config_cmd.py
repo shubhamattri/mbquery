@@ -392,10 +392,10 @@ def set_hints(
     hints_file = store.config_dir / "hints.yaml"
     hints = {}
     if hints_file.exists():
-        with open(hints_file) as f:
+        with open(hints_file, encoding="utf-8") as f:
             hints = yaml.safe_load(f) or {}
     hints[table] = hint
-    with open(hints_file, "w") as f:
+    with open(hints_file, "w", encoding="utf-8") as f:
         yaml.dump(hints, f, default_flow_style=False)
     err_console.print(f"Hint saved for table '[bold]{table}[/]'.")
 
