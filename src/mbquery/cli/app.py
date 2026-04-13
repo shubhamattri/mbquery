@@ -19,9 +19,27 @@ app = typer.Typer(
     help="The ultimate Metabase CLI.",
     no_args_is_help=True,
     rich_markup_mode="rich",
+    invoke_without_command=True,
 )
 
 console = Console(stderr=True)
+
+
+@app.callback(invoke_without_command=True)
+def _root_callback(ctx: typer.Context) -> None:
+    """Auto-launch setup wizard if unconfigured and no command given."""
+    if ctx.invoked_subcommand is not None:
+        return
+    # No subcommand — check if configured
+    from mbquery.config.store import ConfigStore
+    store = ConfigStore()
+    if not store.is_configured():
+        from mbquery.cli.config_cmd import _run_init_wizard
+        _run_init_wizard(store)
+        raise typer.Exit(0)
+    # Configured but no command — show help
+    typer.echo(ctx.get_help())
+
 
 app.command(name="query")(query_cmd)
 app.command(name="ask")(ask_cmd)
