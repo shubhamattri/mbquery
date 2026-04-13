@@ -322,6 +322,11 @@ def add(
     )
 
     if auth_method == "google-sso":
+        if not google_client_secret:
+            err_console.print("[red]Error:[/] --google-client-secret is required for Google SSO.")
+            err_console.print("Get it from Google Cloud Console → OAuth 2.0 Client → Client Secret")
+            store.remove_profile(name)
+            raise typer.Exit(1)
         config = store.load()
         profile = config.profiles[name]
         if not google_client_id:
@@ -329,6 +334,7 @@ def add(
             google_client_id = fetch_google_client_id(url)
             if not google_client_id:
                 err_console.print("[red]Error:[/] Could not fetch Google client ID from Metabase. Provide --google-client-id")
+                store.remove_profile(name)
                 raise typer.Exit(1)
         profile.auth.google_client_id = google_client_id
         profile.auth.google_client_secret = google_client_secret

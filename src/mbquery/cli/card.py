@@ -59,7 +59,7 @@ def card_run(id_or_name: str = typer.Argument(..., help="Card ID or name"), para
         if fields:
             result = result.filter_fields([f.strip() for f in fields.split(",")])
         typer.echo(format_result(result, format or auto_format()))
-    except ValueError as e:
+    except Exception as e:
         err_console.print(f"[red]Error:[/] {e}")
         raise typer.Exit(1)
     finally:
