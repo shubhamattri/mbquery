@@ -7,6 +7,11 @@ import httpx
 from mbquery.config.models import Profile
 
 
+class SessionExpiredError(Exception):
+    """Raised when a Google SSO session has expired."""
+    pass
+
+
 class MetabaseClient:
     def __init__(self, profile: Profile, verbose: bool = False):
         self.profile = profile
@@ -48,7 +53,7 @@ class MetabaseClient:
             print(f"GET {url}", file=sys.stderr)
         resp = self._http.get(url, headers=self._headers(), params=params)
         if resp.status_code == 401 and self.profile.auth.method == "google-sso":
-            raise ValueError("Session expired. Run: mbquery login")
+            raise SessionExpiredError("Session expired. Run: mbquery login")
         resp.raise_for_status()
         return resp.json()
 
@@ -60,7 +65,7 @@ class MetabaseClient:
             print(f"POST {url}", file=sys.stderr)
         resp = self._http.post(url, headers=self._headers(), json=json)
         if resp.status_code == 401 and self.profile.auth.method == "google-sso":
-            raise ValueError("Session expired. Run: mbquery login")
+            raise SessionExpiredError("Session expired. Run: mbquery login")
         resp.raise_for_status()
         return resp.json()
 

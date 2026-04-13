@@ -98,7 +98,10 @@ def _run_init_wizard(store: ConfigStore) -> None:
         google_client_id = fetch_google_client_id(url)
         if not google_client_id:
             google_client_id = typer.prompt("  Google OAuth Client ID (from Google Cloud Console)")
-        google_client_secret = typer.prompt("  Google OAuth Client Secret (from Google Cloud Console)", default="", hide_input=True) or None
+        google_client_secret = typer.prompt("  Google OAuth Client Secret (from Google Cloud Console)", hide_input=True)
+        if not google_client_secret:
+            err_console.print("[red]Error:[/] Client secret is required for Google SSO.")
+            raise typer.Exit(1)
     else:
         email = typer.prompt("  Email")
         password = typer.prompt("  Password", hide_input=True)
