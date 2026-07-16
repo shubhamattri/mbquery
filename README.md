@@ -4,14 +4,35 @@ The ultimate Metabase CLI — SQL queries, natural language queries, and MCP ser
 
 ## Install
 
+Install straight from the repo:
+
 ```bash
-pip install mbquery
+pip install "git+https://github.com/shubhamattri/mbquery.git"
+```
+
+To upgrade to the latest version, force a reinstall:
+
+```bash
+pip install --upgrade --force-reinstall "git+https://github.com/shubhamattri/mbquery.git"
 ```
 
 For MCP server support:
 
 ```bash
-pip install mbquery[mcp]
+pip install "mbquery[mcp] @ git+https://github.com/shubhamattri/mbquery.git"
+```
+
+> Not on PyPI yet — `pip install mbquery` won't work until it's published.
+
+### First-time login (Google SSO profiles)
+
+`mbquery` authenticates against Metabase's Google OAuth client, which is a
+**Web-type** client and therefore requires the OAuth **client secret** at login.
+Metabase never exposes the secret, so you must enter it once — get it from
+whoever set up mbquery for your team (e.g. a shared 1Password entry), then:
+
+```bash
+mbquery login   # paste the Client Secret when prompted
 ```
 
 ## Quick Start
