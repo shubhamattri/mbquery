@@ -163,7 +163,7 @@ def google_sso_login(
 
     # Wait for callback — loop to handle favicon and other stray requests
     err_console.print("  Waiting for authentication...")
-    deadline = time.time() + 120  # 2 minute total timeout
+    deadline = time.time() + 300  # 5 minute total timeout (allows account pick + 2FA)
     while time.time() < deadline:
         server.handle_request()
         if _OAuthCallbackHandler.auth_code or _OAuthCallbackHandler.error:
@@ -192,6 +192,14 @@ def google_sso_login(
 
     resp = httpx.post(GOOGLE_TOKEN_URL, data=token_data, timeout=15.0)
     if resp.status_code != 200:
+        if not google_client_secret and "client_secret" in resp.text:
+            raise ValueError(
+                "Google rejected the token exchange: client_secret is missing.\n"
+                "This Metabase uses a Web-type Google OAuth client, which requires the "
+                "client secret.\nGet the secret from your team, then set it with:\n"
+                "  mbquery config init   (paste the secret when prompted)\n"
+                "or re-run 'mbquery login' and enter it when asked."
+            )
         raise ValueError(f"Google token exchange failed: {resp.text}")
 
     tokens = resp.json()

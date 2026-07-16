@@ -42,6 +42,25 @@ def login_cmd(
         prof.auth.google_client_id = client_id
         store.save(config)
 
+    # Metabase uses a "Web application" Google OAuth client, which requires the
+    # client_secret at token exchange (PKCE does not waive it for web clients).
+    # Metabase only exposes the public client_id, never the secret, so it must be
+    # entered here. Without it, login fails with a raw "client_secret is missing".
+    if not prof.auth.google_client_secret:
+        err_console.print(
+            "  [yellow]This profile has no Google client secret set.[/]"
+        )
+        err_console.print(
+            "  Metabase uses a Web-type OAuth client, so the secret is required to log in."
+        )
+        err_console.print(
+            "  Get it from your team (1Password / whoever set up mbquery), then paste below."
+        )
+        secret = typer.prompt("  Google Client Secret", hide_input=True, default="")
+        if secret:
+            prof.auth.google_client_secret = secret
+            store.save(config)
+
     try:
         session_token = google_sso_login(
             metabase_url=prof.url,

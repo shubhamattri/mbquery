@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mbquery"
-version = "0.1.0"
+version = "0.1.1"
 description = "The ultimate Metabase CLI — SQL, natural language queries, and MCP server"
 readme = "README.md"
 license = "MIT"
